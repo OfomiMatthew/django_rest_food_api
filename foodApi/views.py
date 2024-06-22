@@ -9,7 +9,7 @@ from .serializers import FoodItemSerializer
 
 @api_view()
 def food_item(request):
-  items = FoodItem.objects.all()
+  items = FoodItem.objects.select_related('category').all()
   serialized_item = FoodItemSerializer(items,many=True)
   return Response(serialized_item.data)
   

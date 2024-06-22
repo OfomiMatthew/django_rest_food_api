@@ -10,13 +10,10 @@ class Category(models.Model):
   def __str__(self):
     return self.title
   
-class FoodItem(models.Model):
-  
-  
-    
+class FoodItem(models.Model):  
   name= models.CharField(max_length=100)
   description = models.TextField()
-  category = models.ForeignKey(Category,on_delete=models.PROTECT)
+  category = models.ForeignKey(Category,on_delete=models.PROTECT,blank=True,null=True)
   price = models.DecimalField(max_digits=6, decimal_places=2)
   inventory = models.SmallIntegerField()
   

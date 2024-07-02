@@ -5,4 +5,5 @@ urlpatterns = [
     # path('food-items',views.FoodItemsView.as_view()),
     path('food-items/<int:id>',views.single_item),
     path('food-items/',views.food_item),
+    path('category/<int:pk>/',views.category_detail,name='category-detail')
 ]

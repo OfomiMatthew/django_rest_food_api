@@ -8,16 +8,29 @@ from .serializers import FoodItemSerializer, CategorySerializer
 from rest_framework.renderers import TemplateHTMLRenderer
 
 
+
 @api_view(['GET','POST'])
 def food_item(request):
   if request.method == 'GET':
     items = FoodItem.objects.select_related('category').all()
     category_name = request.query_params.get('category') #filtering operation
-    to_price = request.query_params.get('to_price') #filtering operation
-    if category_name:
+    price_amount = request.query_params.get('price_amount') #filtering operation
+    search = request.query_params.get('search')
+    ordering = request.query_params.get('ordering')
+    if (category_name):
       items = items.filter(category__title=category_name)
-    if to_price:
-      items = items.filter(price__lte=to_price)
+      print(items)
+    if price_amount:
+      items = items.filter(price=price_amount)
+    if search:
+      items = items.filter(name__contains=search)
+    if ordering:
+      ordering_fields = ordering.split(',')
+      items = items.order_by(*ordering_fields) #use comma to sort using different parameters
+      
+    
+        
+      
       
     serialized_item = FoodItemSerializer(items,many=True,context={'request':request})
     return Response(serialized_item.data) 

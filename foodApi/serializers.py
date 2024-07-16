@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import FoodItem, Category
 from decimal import Decimal
+from rest_framework.validators import UniqueValidator,UniqueTogetherValidator
+import bleach
 
 # class FoodItemSerializer(serializers.ModelSerializer):
 #   class Meta:
@@ -25,6 +27,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class FoodItemSerializer(serializers.HyperlinkedModelSerializer):
   stock = serializers.IntegerField(source="inventory")
+  # price = serializers.DecimalField(max_digits=6,decimal_places=2,min_value=50) #validating this field with min_value=50
   price_after_tax = serializers.SerializerMethodField(method_name='calculate_tax')
   # category = serializers.HyperlinkedRelatedField(
   #   queryset=Category.objects.all(),
@@ -38,6 +41,15 @@ class FoodItemSerializer(serializers.HyperlinkedModelSerializer):
     model = FoodItem
     fields = ['id','name','description','price','stock','category','price_after_tax','category_id']
     # depth=1
+    extra_kwargs ={
+      'name':{
+        'validators':[
+          UniqueValidator(queryset=FoodItem.objects.all())
+        ]
+      },
+      'price':{'min_value':50},
+      'stock':{'source':'inventory','min_value':0}
+    }
     
   def calculate_tax(self,product:FoodItem):
     return product.price * Decimal(1.1)

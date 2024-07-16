@@ -6,17 +6,24 @@ from rest_framework.decorators import api_view,renderer_classes
 from .models import FoodItem, Category
 from .serializers import FoodItemSerializer, CategorySerializer
 from rest_framework.renderers import TemplateHTMLRenderer
+from django.core.paginator import Paginator,EmptyPage
 
 
 
 @api_view(['GET','POST'])
 def food_item(request):
   if request.method == 'GET':
+    # filtering starts here
     items = FoodItem.objects.select_related('category').all()
     category_name = request.query_params.get('category') #filtering operation
     price_amount = request.query_params.get('price_amount') #filtering operation
     search = request.query_params.get('search')
     ordering = request.query_params.get('ordering')
+    # filtering stops here
+    
+    # pagination starts here
+    perpage = request.query_params.get('perpage',default=2)
+    page = request.query_params.get('page',default=1)
     if (category_name):
       items = items.filter(category__title=category_name)
       print(items)
@@ -26,15 +33,16 @@ def food_item(request):
       items = items.filter(name__contains=search)
     if ordering:
       ordering_fields = ordering.split(',')
-      items = items.order_by(*ordering_fields) #use comma to sort using different parameters
+      items = items.order_by(*ordering_fields) #use comma to sort using different parameters    
       
-    
-        
-      
-      
+    paginator = Paginator(items,per_page=perpage)
+    try:
+      items = paginator.page(number=page)  
+    except EmptyPage:
+      items =[]
     serialized_item = FoodItemSerializer(items,many=True,context={'request':request})
     return Response(serialized_item.data) 
-  if request.method =='POST':
+  elif request.method =='POST':
      serialized_item = FoodItemSerializer(data=request.data)
      serialized_item.is_valid(raise_exception=True)
      serialized_item.validated_data

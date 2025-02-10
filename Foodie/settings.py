@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'foodApi',
     'rest_framework',
+    'rest_framework.authtoken',
     'drinkApi',
+    'djoser',
 ]
 
 MIDDLEWARE = [
@@ -133,5 +135,25 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
          'rest_framework_xml.renderers.XMLRenderer',
-    ]
+    ],
+    'DEFAULT_FILTER_BACKENDS':[
+    'django_filters.rest_framework.DjangoFilterBackend',
+    'rest_framework.filters.OrderingFilter', 
+    'rest_framework.filters.SearchFilter',
+    ],
+    
+    'DEFAULT_AUTHENTICATION_CLASSES':(
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication', #help to use djoser browsable api view
+    ),
+    'DEFAULT_THROTTLE_RATES':{
+        'anon':'20/day',
+        'user':'5/minute',
+        'ten':'10/minute'
+    },
+    
+}
+
+DJOSER ={
+    "USER_ID_FIELD":"username"  #acts as primary key
 }

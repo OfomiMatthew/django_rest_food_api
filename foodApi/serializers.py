@@ -37,6 +37,7 @@ class FoodItemSerializer(serializers.HyperlinkedModelSerializer):
   # category = serializers.StringRelatedField() #use this for a single field in the category class model based on the string method
   category = CategorySerializer(read_only=True) #read_only =True means I do not need to add this field when creating a POST
   category_id = serializers.IntegerField(write_only=True) #adding new category in addition to ones already created
+  
   class Meta:
     model = FoodItem
     fields = ['id','name','description','price','stock','category','price_after_tax','category_id']

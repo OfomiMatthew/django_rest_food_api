@@ -1,12 +1,15 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework.response import Response
-from rest_framework import generics,status
+from rest_framework import generics,status,viewsets
 from rest_framework.response import Response
-from rest_framework.decorators import api_view,renderer_classes
+from rest_framework.decorators import api_view,renderer_classes,throttle_classes,permission_classes
 from .models import FoodItem, Category
 from .serializers import FoodItemSerializer, CategorySerializer
 from rest_framework.renderers import TemplateHTMLRenderer
 from django.core.paginator import Paginator,EmptyPage
+from rest_framework.permissions import  IsAuthenticated
+from rest_framework.throttling import AnonRateThrottle,UserRateThrottle
+from .throttles import TenCallsPerMinute
 
 
 
@@ -22,7 +25,7 @@ def food_item(request):
     # filtering stops here
     
     # pagination starts here
-    perpage = request.query_params.get('perpage',default=2)
+    perpage = request.query_params.get('perpage',default=5)
     page = request.query_params.get('page',default=1)
     if (category_name):
       items = items.filter(category__title=category_name)
@@ -30,7 +33,7 @@ def food_item(request):
     if price_amount:
       items = items.filter(price=price_amount)
     if search:
-      items = items.filter(name__contains=search)
+      items = items.filter(name__icontains=search)
     if ordering:
       ordering_fields = ordering.split(',')
       items = items.order_by(*ordering_fields) #use comma to sort using different parameters    
@@ -74,3 +77,34 @@ def category_detail(request,pk):
 #   queryset = FoodItem.objects.all()
 #   serializer_class = FoodItemSerializer
   
+@api_view()
+@permission_classes([IsAuthenticated])
+def secret(request):
+  return Response({"message":"secret message"})
+
+@api_view()
+@permission_classes([IsAuthenticated])
+def manager_view(request):
+  if request.user.groups.filter(name='Manager').exists():
+    return Response({"message":"only manager can see this"})
+  else:
+    return Response({"You are not authorized since you are not a manager"},403)
+    
+  
+@api_view() 
+@throttle_classes([AnonRateThrottle])
+def throttle_check(request):
+  return Response({'message':"throttle successful"})
+
+@api_view() 
+@permission_classes([IsAuthenticated])
+@throttle_classes([TenCallsPerMinute])
+def throttle_check_auth(request):
+  return Response({'message':"throttle successful for logged in user"})
+
+
+# class MenuItem(viewsets.ModelViewSet):
+#   queryset = FoodItem.objects.all()
+#   serializer_class = FoodItemSerializer
+#   ordering_fields = ['price','inventory']
+#   search_fields = ['name','category__title']
